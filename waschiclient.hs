@@ -9,13 +9,33 @@ import Control.Monad
 data Action = Search String | Wash String
                         deriving(Eq,Show)
 
+-- Login data. First String is username, second is password!
+data LoginData = LoginData String String
+
 main :: IO ()
 main = do
         putStrLn "Welcome to waschiclient-hs!\nA Waschi client written in Haskell!"
+        
+        -- set default user/password
+        let login = LoginData "Hugo" "mycock"
         -- get the waschi server-list and shuffle it
         servers <- getServers >>= shuffle
         act <- askUserAction
         putStrLn ("User wants to " ++ show act)
+        doAction servers login act
+
+-- perform the Action the user wants to perform
+doAction :: [String] -> LoginData -> Action -> IO ()
+doAction servers (LoginData user pass) (Wash clothing) = do
+        let req = urlEncodeVars [("Username",user),("Password",pass),("Kleidung",clothing)]
+        putStrLn req
+        -- we send the request to the first server, because we shuffled the list
+        -- TODO: Error handling (use next server on fail)
+        response <- simpleHTTP (postRequestWithBody (head servers ++ "echowash.php") "application/x-www-form-urlencoded" req) >>= getResponseBody
+        putStrLn response
+
+-- TODO: implement searching
+doAction servers (LoginData user pass) (Search clothing) = error "Not implemented yet, come back later!"
 
 -- Action to ask the user which operation to perform
 askUserAction :: IO Action
