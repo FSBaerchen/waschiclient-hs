@@ -28,7 +28,6 @@ main = do
 doAction :: [String] -> LoginData -> Action -> IO ()
 doAction servers (LoginData user pass) (Wash clothing) = do
         let req = urlEncodeVars [("Username",user),("Password",pass),("Kleidung",clothing)]
-        putStrLn req
         -- we send the request to the first server, because we shuffled the list
         -- TODO: Error handling (use next server on fail)
         response <- simpleHTTP (postRequestWithBody (head servers ++ "echowash.php") "application/x-www-form-urlencoded" req) >>= getResponseBody
